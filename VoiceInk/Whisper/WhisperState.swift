@@ -59,6 +59,8 @@ class WhisperState: NSObject, ObservableObject, AVAudioRecorderDelegate {
             Task {
                 await cleanupServiceResources()
             }
+            // Post notification for language change
+            NotificationCenter.default.post(name: .languageDidChange, object: nil)
         }
     }
     
@@ -88,6 +90,8 @@ class WhisperState: NSObject, ObservableObject, AVAudioRecorderDelegate {
     @Published var cloudTranscriptionLanguage: String? = UserDefaults.standard.cloudTranscriptionLanguage {
         didSet {
             UserDefaults.standard.cloudTranscriptionLanguage = cloudTranscriptionLanguage
+            // Post notification for language change
+            NotificationCenter.default.post(name: .languageDidChange, object: nil)
         }
     }
     

@@ -15,6 +15,8 @@ struct LanguageSelectionView: View {
     private func updateLanguage(_ language: String) {
         // Update UI state - the UserDefaults updating is now automatic with @AppStorage
         selectedLanguage = language
+        // Post notification for language change
+        NotificationCenter.default.post(name: .languageDidChange, object: nil)
     }
     
     // Function to check if current model is multilingual
