@@ -16,7 +16,7 @@ class AIEnhancementService: ObservableObject {
     
     @Published var isEnhancementEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(isEnhancementEnabled, forKey: "isAIEnhancementEnabled")
+            UserDefaults.standard.set(isEnhancementEnabled, forKey: UserDefaultsKeys.AIEnhancement.isEnabled)
             // When enhancement is enabled, ensure a prompt is selected
             if isEnhancementEnabled && selectedPromptId == nil {
                 // Select the first prompt (default) if none is selected
@@ -36,33 +36,33 @@ class AIEnhancementService: ObservableObject {
     }        
     @Published var useClipboardContext: Bool {
         didSet {
-            UserDefaults.standard.set(useClipboardContext, forKey: "useClipboardContext")
+            UserDefaults.standard.set(useClipboardContext, forKey: UserDefaultsKeys.AIEnhancement.useClipboardContext)
         }
     }
     
     @Published var useScreenCaptureContext: Bool {
         didSet {
-            UserDefaults.standard.set(useScreenCaptureContext, forKey: "useScreenCaptureContext")
+            UserDefaults.standard.set(useScreenCaptureContext, forKey: UserDefaultsKeys.AIEnhancement.useScreenCaptureContext)
         }
     }
     
     @Published var assistantTriggerWord: String {
         didSet {
-            UserDefaults.standard.set(assistantTriggerWord, forKey: "assistantTriggerWord")
+            UserDefaults.standard.set(assistantTriggerWord, forKey: UserDefaultsKeys.AIEnhancement.assistantTriggerWord)
         }
     }
     
     @Published var customPrompts: [CustomPrompt] {
         didSet {
             if let encoded = try? JSONEncoder().encode(customPrompts.filter { !$0.isPredefined }) {
-                UserDefaults.standard.set(encoded, forKey: "customPrompts")
+                UserDefaults.standard.set(encoded, forKey: UserDefaultsKeys.AIEnhancement.customPrompts)
             }
         }
     }
     
     @Published var selectedPromptId: UUID? {
         didSet {
-            UserDefaults.standard.set(selectedPromptId?.uuidString, forKey: "selectedPromptId")
+            UserDefaults.standard.set(selectedPromptId?.uuidString, forKey: UserDefaultsKeys.AIEnhancement.selectedPromptId)
         }
     }
     
@@ -97,13 +97,13 @@ class AIEnhancementService: ObservableObject {
             }
         }
         
-        self.isEnhancementEnabled = UserDefaults.standard.bool(forKey: "isAIEnhancementEnabled")
-        self.useClipboardContext = UserDefaults.standard.bool(forKey: "useClipboardContext")
-        self.useScreenCaptureContext = UserDefaults.standard.bool(forKey: "useScreenCaptureContext")
-        self.assistantTriggerWord = UserDefaults.standard.string(forKey: "assistantTriggerWord") ?? "hey"
+        self.isEnhancementEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.AIEnhancement.isEnabled)
+        self.useClipboardContext = UserDefaults.standard.bool(forKey: UserDefaultsKeys.AIEnhancement.useClipboardContext)
+        self.useScreenCaptureContext = UserDefaults.standard.bool(forKey: UserDefaultsKeys.AIEnhancement.useScreenCaptureContext)
+        self.assistantTriggerWord = UserDefaults.standard.string(forKey: UserDefaultsKeys.AIEnhancement.assistantTriggerWord) ?? "hey"
         
         // Load only custom prompts (non-predefined ones)
-        if let savedPromptsData = UserDefaults.standard.data(forKey: "customPrompts"),
+        if let savedPromptsData = UserDefaults.standard.data(forKey: UserDefaultsKeys.AIEnhancement.customPrompts),
            let decodedPrompts = try? JSONDecoder().decode([CustomPrompt].self, from: savedPromptsData) {
             self.customPrompts = decodedPrompts
         } else {
@@ -111,7 +111,7 @@ class AIEnhancementService: ObservableObject {
         }
         
         // Load selected prompt ID
-        if let savedPromptId = UserDefaults.standard.string(forKey: "selectedPromptId") {
+        if let savedPromptId = UserDefaults.standard.string(forKey: UserDefaultsKeys.AIEnhancement.selectedPromptId) {
             self.selectedPromptId = UUID(uuidString: savedPromptId)
         }
         

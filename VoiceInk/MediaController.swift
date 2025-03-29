@@ -13,9 +13,9 @@ class MediaController: ObservableObject {
     
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "MediaController")
     
-    @Published var isMediaPauseEnabled: Bool = UserDefaults.standard.bool(forKey: "isMediaPauseEnabled") {
+    @Published var isMediaPauseEnabled: Bool = UserDefaults.standard.bool(forKey: UserDefaultsKeys.Media.isPauseEnabled) {
         didSet {
-            UserDefaults.standard.set(isMediaPauseEnabled, forKey: "isMediaPauseEnabled")
+            UserDefaults.standard.set(isMediaPauseEnabled, forKey: UserDefaultsKeys.Media.isPauseEnabled)
         }
     }
     
@@ -33,8 +33,8 @@ class MediaController: ObservableObject {
     
     private init() {
         // Set default if not already set
-        if !UserDefaults.standard.contains(key: "isMediaPauseEnabled") {
-            UserDefaults.standard.set(true, forKey: "isMediaPauseEnabled")
+        if !UserDefaults.standard.contains(key: UserDefaultsKeys.Media.isPauseEnabled) {
+            UserDefaults.standard.set(true, forKey: UserDefaultsKeys.Media.isPauseEnabled)
         }
         setupMediaRemote()
     }
@@ -211,9 +211,3 @@ class MediaController: ObservableObject {
         }
     }
 }
-
-extension UserDefaults {
-    func contains(key: String) -> Bool {
-        return object(forKey: key) != nil
-    }
-} 

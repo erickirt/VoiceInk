@@ -25,14 +25,14 @@ class HotkeyManager: ObservableObject {
     @Published var isShortcutConfigured = false
     @Published var isPushToTalkEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(isPushToTalkEnabled, forKey: "isPushToTalkEnabled")
+            UserDefaults.standard.set(isPushToTalkEnabled, forKey: UserDefaultsKeys.PushToTalk.isEnabled)
             resetKeyStates()
             setupKeyMonitor()
         }
     }
     @Published var pushToTalkKey: PushToTalkKey {
         didSet {
-            UserDefaults.standard.set(pushToTalkKey.rawValue, forKey: "pushToTalkKey")
+            UserDefaults.standard.set(pushToTalkKey.rawValue, forKey: UserDefaultsKeys.PushToTalk.key)
             resetKeyStates()
         }
     }
@@ -95,8 +95,8 @@ class HotkeyManager: ObservableObject {
     }
     
     init(whisperState: WhisperState) {
-        self.isPushToTalkEnabled = UserDefaults.standard.bool(forKey: "isPushToTalkEnabled")
-        self.pushToTalkKey = PushToTalkKey(rawValue: UserDefaults.standard.string(forKey: "pushToTalkKey") ?? "") ?? .rightCommand
+        self.isPushToTalkEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.PushToTalk.isEnabled)
+        self.pushToTalkKey = PushToTalkKey(rawValue: UserDefaults.standard.string(forKey: UserDefaultsKeys.PushToTalk.key) ?? "") ?? .rightCommand
         self.whisperState = whisperState
         
         updateShortcutStatus()

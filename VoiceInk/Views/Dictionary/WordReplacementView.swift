@@ -3,19 +3,19 @@ import SwiftUI
 class WordReplacementManager: ObservableObject {
     @Published var replacements: [String: String] {
         didSet {
-            UserDefaults.standard.set(replacements, forKey: "wordReplacements")
+            UserDefaults.standard.set(replacements, forKey: UserDefaultsKeys.WordReplacement.replacements)
         }
     }
     
     @Published var isEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(isEnabled, forKey: "IsWordReplacementEnabled")
+            UserDefaults.standard.set(isEnabled, forKey: UserDefaultsKeys.WordReplacement.isEnabled)
         }
     }
     
     init() {
-        self.replacements = UserDefaults.standard.dictionary(forKey: "wordReplacements") as? [String: String] ?? [:]
-        self.isEnabled = UserDefaults.standard.bool(forKey: "IsWordReplacementEnabled")
+        self.replacements = UserDefaults.standard.dictionary(forKey: UserDefaultsKeys.WordReplacement.replacements) as? [String: String] ?? [:]
+        self.isEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.WordReplacement.isEnabled)
     }
     
     func addReplacement(original: String, replacement: String) {

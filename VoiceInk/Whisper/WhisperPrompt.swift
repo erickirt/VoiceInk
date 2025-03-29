@@ -1,15 +1,11 @@
 import Foundation
 
-extension Notification.Name {
-    static let languageDidChange = Notification.Name("languageDidChange")
-}
-
 @MainActor
 class WhisperPrompt: ObservableObject {
-    @Published var transcriptionPrompt: String = UserDefaults.standard.string(forKey: "TranscriptionPrompt") ?? ""
+    @Published var transcriptionPrompt: String = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.transcriptionPrompt) ?? ""
     
     private var dictionaryWords: [String] = []
-    private let saveKey = "CustomDictionaryItems"
+    private let saveKey = UserDefaultsKeys.WhisperPrompts.savedPrompts
     
     // Language-specific base prompts
     private let languagePrompts: [String: String] = [
@@ -91,7 +87,15 @@ class WhisperPrompt: ObservableObject {
     
     private func updateTranscriptionPrompt() {
         // Get the currently selected language from UserDefaults
-        let selectedLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "en"
+        
+        let transcriptionServiceType = UserDefaults.standard.transcriptionServiceType
+        let selectedLanguage: String
+        switch transcriptionServiceType {
+        case .local:
+            selectedLanguage = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.selectedLanguage) ?? "en"
+        case .cloud:
+            selectedLanguage = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.cloudTranscriptionLanguage) ?? "en"
+        }
         
         // Get the appropriate base prompt for the selected language
         let basePrompt = languagePrompts[selectedLanguage] ?? languagePrompts["default"]!
@@ -105,7 +109,7 @@ class WhisperPrompt: ObservableObject {
         }
         
         transcriptionPrompt = prompt
-        UserDefaults.standard.set(prompt, forKey: "TranscriptionPrompt")
+        UserDefaults.standard.set(prompt, forKey: UserDefaultsKeys.TranscriptionService.transcriptionPrompt)
     }
     
     func saveDictionaryItems(_ items: [DictionaryItem]) async {
