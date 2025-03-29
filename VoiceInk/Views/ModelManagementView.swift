@@ -166,33 +166,11 @@ struct ModelManagementView: View {
                     .padding(.vertical, 4)
             }
             
-            // Language Selection (separate from local transcription)
-            cloudLanguageSelectionSection
+            languageSelectionSection
         }
         .padding()
         .background(Color(.windowBackgroundColor).opacity(0.4))
         .cornerRadius(10)
-    }
-    
-    private var cloudLanguageSelectionSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Transcription Language")
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            // Custom language input
-            TextField("Enter language code", text: Binding(
-                get: { whisperState.cloudTranscriptionLanguage ?? "" },
-                set: { whisperState.cloudTranscriptionLanguage = $0.isEmpty ? nil : $0 }
-            ))
-            .textFieldStyle(RoundedBorderTextFieldStyle())
-            .padding(.vertical, 4)
-
-            Text("Choose a predefined language, select auto-detect, or enter a custom language code")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding(.vertical, 8)
     }
     
     private var languageSelectionSection: some View {
