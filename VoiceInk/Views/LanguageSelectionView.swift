@@ -24,7 +24,7 @@ struct LanguageSelectionView: View {
             cloudSelectedLanguage = language
         }
         
-        // 更新 WhisperState 中的語言設定
+        // Update language settings in WhisperState
         if whisperState.transcriptionServiceType == .local {
             whisperState.selectedLanguage = language
         } else {
@@ -110,7 +110,7 @@ struct LanguageSelectionView: View {
                          $0.name == currentModel.name
                      })
             {
-                // 本地轉錄服務語言設定
+                // Local transcription service language settings
                 if isMultilingualModel() {
                     VStack(alignment: .leading, spacing: 8) {
                         Picker("Select Language", selection: Binding(
