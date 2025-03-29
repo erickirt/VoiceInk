@@ -38,7 +38,7 @@ extension WhisperState {
         defer { isModelLoading = false }
         
         currentModel = model
-        UserDefaults.standard.set(model.name, forKey: UserDefaultsKeys.TranscriptionService.currentModel)
+        UserDefaults.standard.currentModel = model.name
         
         await cleanupServiceResources()
         
@@ -57,7 +57,7 @@ extension WhisperState {
     func setDefaultModel(_ model: WhisperModel) async {
         do {
             currentModel = model
-            UserDefaults.standard.set(model.name, forKey: UserDefaultsKeys.TranscriptionService.currentModel)
+            UserDefaults.standard.currentModel = model.name
             canTranscribe = true
         } catch {
             currentError = error as? WhisperStateError ?? .unknownError

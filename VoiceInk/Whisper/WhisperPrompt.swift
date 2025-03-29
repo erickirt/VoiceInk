@@ -2,7 +2,11 @@ import Foundation
 
 @MainActor
 class WhisperPrompt: ObservableObject {
-    @Published var transcriptionPrompt: String = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.transcriptionPrompt) ?? ""
+    @Published var transcriptionPrompt: String = UserDefaults.standard.transcriptionPrompt {
+        didSet {
+            UserDefaults.standard.transcriptionPrompt = transcriptionPrompt
+        }
+    }
     
     private var dictionaryWords: [String] = []
     private let saveKey = UserDefaultsKeys.WhisperPrompts.savedPrompts
@@ -92,9 +96,9 @@ class WhisperPrompt: ObservableObject {
         let selectedLanguage: String
         switch transcriptionServiceType {
         case .local:
-            selectedLanguage = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.selectedLanguage) ?? "en"
+            selectedLanguage = UserDefaults.standard.selectedLanguage ?? "en"
         case .cloud:
-            selectedLanguage = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.cloudTranscriptionLanguage) ?? "en"
+            selectedLanguage = UserDefaults.standard.cloudTranscriptionLanguage ?? "en"
         }
         
         // Get the appropriate base prompt for the selected language
@@ -109,7 +113,6 @@ class WhisperPrompt: ObservableObject {
         }
         
         transcriptionPrompt = prompt
-        UserDefaults.standard.set(prompt, forKey: UserDefaultsKeys.TranscriptionService.transcriptionPrompt)
     }
     
     func saveDictionaryItems(_ items: [DictionaryItem]) async {

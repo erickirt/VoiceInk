@@ -105,7 +105,7 @@ class AudioTranscriptionManager: ObservableObject {
                 }
                 
                 // Set language from UserDefaults
-                let selectedLanguage = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.selectedLanguage)
+                let selectedLanguage = UserDefaults.standard.selectedLanguage
                 await transcriptionService.setLanguage(selectedLanguage)
                 
                 // Process with transcription service
@@ -120,7 +120,7 @@ class AudioTranscriptionManager: ObservableObject {
                 transcriptionText = transcriptionText.trimmingCharacters(in: .whitespacesAndNewlines)
                 
                 // Apply word replacements if enabled
-                if UserDefaults.standard.bool(forKey: UserDefaultsKeys.WordReplacement.isEnabled) {
+                if UserDefaults.standard.isWordReplacementEnabled {
                     transcriptionText = WordReplacementService.shared.applyReplacements(to: transcriptionText)
                 }
                 

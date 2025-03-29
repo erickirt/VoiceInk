@@ -23,16 +23,18 @@ extension KeyboardShortcuts.Name {
 class HotkeyManager: ObservableObject {
     @Published var isListening = false
     @Published var isShortcutConfigured = false
-    @Published var isPushToTalkEnabled: Bool {
+    @Published var isPushToTalkEnabled: Bool = UserDefaults.standard.isPushToTalkEnabled {
         didSet {
-            UserDefaults.standard.set(isPushToTalkEnabled, forKey: UserDefaultsKeys.PushToTalk.isEnabled)
+            UserDefaults.standard.isPushToTalkEnabled = isPushToTalkEnabled
             resetKeyStates()
             setupKeyMonitor()
         }
     }
-    @Published var pushToTalkKey: PushToTalkKey {
+    @Published var pushToTalkKey: PushToTalkKey = {
+        return PushToTalkKey(rawValue: UserDefaults.standard.pushToTalkKey) ?? .rightCommand
+    }() {
         didSet {
-            UserDefaults.standard.set(pushToTalkKey.rawValue, forKey: UserDefaultsKeys.PushToTalk.key)
+            UserDefaults.standard.pushToTalkKey = pushToTalkKey.rawValue
             resetKeyStates()
         }
     }
@@ -95,8 +97,6 @@ class HotkeyManager: ObservableObject {
     }
     
     init(whisperState: WhisperState) {
-        self.isPushToTalkEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.PushToTalk.isEnabled)
-        self.pushToTalkKey = PushToTalkKey(rawValue: UserDefaults.standard.string(forKey: UserDefaultsKeys.PushToTalk.key) ?? "") ?? .rightCommand
         self.whisperState = whisperState
         
         updateShortcutStatus()

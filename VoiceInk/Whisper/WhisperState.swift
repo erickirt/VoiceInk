@@ -21,15 +21,15 @@ class WhisperState: NSObject, ObservableObject, AVAudioRecorderDelegate {
     @Published var isProcessing = false
     @Published var shouldCancelRecording = false
     @Published var isTranscribing = false
-    @Published var isAutoCopyEnabled: Bool = UserDefaults.standard.object(forKey: UserDefaultsKeys.AutoCopy.isEnabled) as? Bool ?? true {
+    @Published var isAutoCopyEnabled: Bool = UserDefaults.standard.isAutoCopyEnabled {
         didSet {
-            UserDefaults.standard.set(isAutoCopyEnabled, forKey: UserDefaultsKeys.AutoCopy.isEnabled)
+            UserDefaults.standard.isAutoCopyEnabled = isAutoCopyEnabled
         }
     }
 
-    @Published var recorderType: String = UserDefaults.standard.string(forKey: UserDefaultsKeys.Recorder.type) ?? "mini" {
+    @Published var recorderType: String = UserDefaults.standard.recorderType {
         didSet {
-            UserDefaults.standard.set(recorderType, forKey: UserDefaultsKeys.Recorder.type)
+            UserDefaults.standard.recorderType = recorderType
         }
     }
     
@@ -92,9 +92,9 @@ class WhisperState: NSObject, ObservableObject, AVAudioRecorderDelegate {
     }
     
     // Selected language for transcription
-    @Published var selectedLanguage: String? = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.selectedLanguage) {
+    @Published var selectedLanguage: String? = UserDefaults.standard.selectedLanguage {
         didSet {
-            UserDefaults.standard.set(selectedLanguage, forKey: UserDefaultsKeys.TranscriptionService.selectedLanguage)
+            UserDefaults.standard.selectedLanguage = selectedLanguage
         }
     }
     
@@ -154,7 +154,7 @@ class WhisperState: NSObject, ObservableObject, AVAudioRecorderDelegate {
         createRecordingsDirectoryIfNeeded()
         loadAvailableModels()
         
-        if let savedModelName = UserDefaults.standard.string(forKey: UserDefaultsKeys.TranscriptionService.currentModel),
+        if let savedModelName = UserDefaults.standard.currentModel,
            let savedModel = availableModels.first(where: { $0.name == savedModelName })
         {
             currentModel = savedModel
@@ -385,7 +385,7 @@ class WhisperState: NSObject, ObservableObject, AVAudioRecorderDelegate {
             text = text.trimmingCharacters(in: .whitespacesAndNewlines)
             logger.notice("✅ Transcription completed successfully, length: \(text.count) characters")
             
-            if UserDefaults.standard.bool(forKey: UserDefaultsKeys.WordReplacement.isEnabled) {
+            if UserDefaults.standard.isWordReplacementEnabled {
                 text = WordReplacementService.shared.applyReplacements(to: text)
                 logger.notice("✅ Word replacements applied")
             }

@@ -122,6 +122,142 @@ extension UserDefaults {
         set { set(newValue, forKey: UserDefaultsKeys.WordReplacement.isEnabled) }
     }
     
+    var wordReplacements: [String: String] {
+        get { dictionary(forKey: UserDefaultsKeys.WordReplacement.replacements) as? [String: String] ?? [:] }
+        set { set(newValue, forKey: UserDefaultsKeys.WordReplacement.replacements) }
+    }
+    
+    // MARK: - Paste Method
+    var useAppleScriptPaste: Bool {
+        get { bool(forKey: UserDefaultsKeys.Paste.useAppleScriptPaste) }
+        set { set(newValue, forKey: UserDefaultsKeys.Paste.useAppleScriptPaste) }
+    }
+    
+    // MARK: - Auto Copy
+    var isAutoCopyEnabled: Bool {
+        get { bool(forKey: UserDefaultsKeys.AutoCopy.isEnabled) }
+        set { set(newValue, forKey: UserDefaultsKeys.AutoCopy.isEnabled) }
+    }
+    
+    // MARK: - Menu Bar
+    var isMenuBarOnly: Bool {
+        get { bool(forKey: UserDefaultsKeys.MenuBar.isMenuBarOnly) }
+        set { set(newValue, forKey: UserDefaultsKeys.MenuBar.isMenuBarOnly) }
+    }
+    
+    // MARK: - Recorder
+    var recorderType: String {
+        get { string(forKey: UserDefaultsKeys.Recorder.type) ?? "mini" }
+        set { set(newValue, forKey: UserDefaultsKeys.Recorder.type) }
+    }
+    
+    // MARK: - Media Control
+    var isMediaPauseEnabled: Bool {
+        get { bool(forKey: UserDefaultsKeys.Media.isPauseEnabled) }
+        set { set(newValue, forKey: UserDefaultsKeys.Media.isPauseEnabled) }
+    }
+    
+    // MARK: - Push To Talk
+    var isPushToTalkEnabled: Bool {
+        get { bool(forKey: UserDefaultsKeys.PushToTalk.isEnabled) }
+        set { set(newValue, forKey: UserDefaultsKeys.PushToTalk.isEnabled) }
+    }
+    
+    var pushToTalkKey: String {
+        get { string(forKey: UserDefaultsKeys.PushToTalk.key) ?? "" }
+        set { set(newValue, forKey: UserDefaultsKeys.PushToTalk.key) }
+    }
+    
+    // MARK: - AI Enhancement
+    var isAIEnhancementEnabled: Bool {
+        get { bool(forKey: UserDefaultsKeys.AIEnhancement.isEnabled) }
+        set { set(newValue, forKey: UserDefaultsKeys.AIEnhancement.isEnabled) }
+    }
+    
+    var useClipboardContext: Bool {
+        get { bool(forKey: UserDefaultsKeys.AIEnhancement.useClipboardContext) }
+        set { set(newValue, forKey: UserDefaultsKeys.AIEnhancement.useClipboardContext) }
+    }
+    
+    var useScreenCaptureContext: Bool {
+        get { bool(forKey: UserDefaultsKeys.AIEnhancement.useScreenCaptureContext) }
+        set { set(newValue, forKey: UserDefaultsKeys.AIEnhancement.useScreenCaptureContext) }
+    }
+    
+    var assistantTriggerWord: String {
+        get { string(forKey: UserDefaultsKeys.AIEnhancement.assistantTriggerWord) ?? "hey" }
+        set { set(newValue, forKey: UserDefaultsKeys.AIEnhancement.assistantTriggerWord) }
+    }
+    
+    var aiEnhancementCustomPrompts: Data? {
+        get { data(forKey: UserDefaultsKeys.AIEnhancement.customPrompts) }
+        set { set(newValue, forKey: UserDefaultsKeys.AIEnhancement.customPrompts) }
+    }
+    
+    var selectedPromptId: String? {
+        get { string(forKey: UserDefaultsKeys.AIEnhancement.selectedPromptId) }
+        set { set(newValue, forKey: UserDefaultsKeys.AIEnhancement.selectedPromptId) }
+    }
+    
+    // MARK: - Ollama
+    var ollamaBaseURL: String {
+        get { string(forKey: UserDefaultsKeys.Ollama.baseURL) ?? "http://localhost:11434" }
+        set { set(newValue, forKey: UserDefaultsKeys.Ollama.baseURL) }
+    }
+    
+    var ollamaSelectedModel: String {
+        get { string(forKey: UserDefaultsKeys.Ollama.selectedModel) ?? "llama2" }
+        set { set(newValue, forKey: UserDefaultsKeys.Ollama.selectedModel) }
+    }
+    
+    // MARK: - Custom Provider
+    var customProviderBaseURL: String {
+        get { string(forKey: UserDefaultsKeys.CustomProvider.baseURL) ?? "" }
+        set { set(newValue, forKey: UserDefaultsKeys.CustomProvider.baseURL) }
+    }
+    
+    var customProviderModel: String {
+        get { string(forKey: UserDefaultsKeys.CustomProvider.model) ?? "" }
+        set { set(newValue, forKey: UserDefaultsKeys.CustomProvider.model) }
+    }
+    
+    // MARK: - Audio Device
+    var audioInputMode: String? {
+        get { string(forKey: UserDefaultsKeys.AudioDevice.inputMode) }
+        set { set(newValue, forKey: UserDefaultsKeys.AudioDevice.inputMode) }
+    }
+    
+    var selectedAudioDeviceID: Any? {
+        get { object(forKey: UserDefaultsKeys.AudioDevice.selectedDeviceID) }
+        set { set(newValue, forKey: UserDefaultsKeys.AudioDevice.selectedDeviceID) }
+    }
+    
+    var prioritizedDevices: Data? {
+        get { data(forKey: UserDefaultsKeys.AudioDevice.prioritizedDevices) }
+        set { set(newValue, forKey: UserDefaultsKeys.AudioDevice.prioritizedDevices) }
+    }
+    
+    // MARK: - Transcription Service
+    var selectedLanguage: String? {
+        get { string(forKey: UserDefaultsKeys.TranscriptionService.selectedLanguage) }
+        set { set(newValue, forKey: UserDefaultsKeys.TranscriptionService.selectedLanguage) }
+    }
+    
+    var transcriptionPrompt: String {
+        get { string(forKey: UserDefaultsKeys.TranscriptionService.transcriptionPrompt) ?? "" }
+        set { set(newValue, forKey: UserDefaultsKeys.TranscriptionService.transcriptionPrompt) }
+    }
+    
+    var currentModel: String? {
+        get { string(forKey: UserDefaultsKeys.TranscriptionService.currentModel) }
+        set { set(newValue, forKey: UserDefaultsKeys.TranscriptionService.currentModel) }
+    }
+    
+    var cloudTranscriptionLanguage: String? {
+        get { string(forKey: UserDefaultsKeys.TranscriptionService.cloudTranscriptionLanguage) }
+        set { set(newValue, forKey: UserDefaultsKeys.TranscriptionService.cloudTranscriptionLanguage) }
+    }
+    
     // MARK: - Transcription Service
     var transcriptionServiceType: TranscriptionServiceType {
         get {
@@ -150,11 +286,6 @@ extension UserDefaults {
     var cloudTranscriptionModelName: String {
         get { string(forKey: UserDefaultsKeys.TranscriptionService.cloudTranscriptionModelName) ?? "gpt-4o-transcribe" }
         set { set(newValue, forKey: UserDefaultsKeys.TranscriptionService.cloudTranscriptionModelName) }
-    }
-    
-    var cloudTranscriptionLanguage: String? {
-        get { string(forKey: UserDefaultsKeys.TranscriptionService.cloudTranscriptionLanguage) }
-        set { set(newValue, forKey: UserDefaultsKeys.TranscriptionService.cloudTranscriptionLanguage) }
     }
     
     // MARK: - License

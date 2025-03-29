@@ -175,8 +175,8 @@ struct SettingsView: View {
                             .settingsDescription()
                         
                         Toggle("Use AppleScript Paste Method", isOn: Binding(
-                            get: { UserDefaults.standard.bool(forKey: UserDefaultsKeys.Paste.useAppleScriptPaste) },
-                            set: { UserDefaults.standard.set($0, forKey: UserDefaultsKeys.Paste.useAppleScriptPaste) }
+                            get: { UserDefaults.standard.useAppleScriptPaste },
+                            set: { UserDefaults.standard.useAppleScriptPaste = $0 }
                         ))
                         .toggleStyle(.switch)
                     }

@@ -18,7 +18,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func updateActivationPolicy() {
-        let isMenuBarOnly = UserDefaults.standard.bool(forKey: UserDefaultsKeys.MenuBar.isMenuBarOnly)
+        let isMenuBarOnly = UserDefaults.standard.isMenuBarOnly
         if isMenuBarOnly {
             NSApp.setActivationPolicy(.accessory)
         } else {

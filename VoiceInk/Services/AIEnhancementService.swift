@@ -16,7 +16,7 @@ class AIEnhancementService: ObservableObject {
     
     @Published var isEnhancementEnabled: Bool {
         didSet {
-            UserDefaults.standard.set(isEnhancementEnabled, forKey: UserDefaultsKeys.AIEnhancement.isEnabled)
+            UserDefaults.standard.isAIEnhancementEnabled = isEnhancementEnabled
             // When enhancement is enabled, ensure a prompt is selected
             if isEnhancementEnabled && selectedPromptId == nil {
                 // Select the first prompt (default) if none is selected
@@ -33,36 +33,37 @@ class AIEnhancementService: ObservableObject {
                 }
             }
         }
-    }        
+    }
+    
     @Published var useClipboardContext: Bool {
         didSet {
-            UserDefaults.standard.set(useClipboardContext, forKey: UserDefaultsKeys.AIEnhancement.useClipboardContext)
+            UserDefaults.standard.useClipboardContext = useClipboardContext
         }
     }
     
     @Published var useScreenCaptureContext: Bool {
         didSet {
-            UserDefaults.standard.set(useScreenCaptureContext, forKey: UserDefaultsKeys.AIEnhancement.useScreenCaptureContext)
+            UserDefaults.standard.useScreenCaptureContext = useScreenCaptureContext
         }
     }
     
     @Published var assistantTriggerWord: String {
         didSet {
-            UserDefaults.standard.set(assistantTriggerWord, forKey: UserDefaultsKeys.AIEnhancement.assistantTriggerWord)
+            UserDefaults.standard.assistantTriggerWord = assistantTriggerWord
         }
     }
     
     @Published var customPrompts: [CustomPrompt] {
         didSet {
-            if let encoded = try? JSONEncoder().encode(customPrompts.filter { !$0.isPredefined }) {
-                UserDefaults.standard.set(encoded, forKey: UserDefaultsKeys.AIEnhancement.customPrompts)
+            if let encoded = try? JSONEncoder().encode(customPrompts) {
+                UserDefaults.standard.aiEnhancementCustomPrompts = encoded
             }
         }
     }
     
     @Published var selectedPromptId: UUID? {
         didSet {
-            UserDefaults.standard.set(selectedPromptId?.uuidString, forKey: UserDefaultsKeys.AIEnhancement.selectedPromptId)
+            UserDefaults.standard.selectedPromptId = selectedPromptId?.uuidString
         }
     }
     
@@ -97,13 +98,13 @@ class AIEnhancementService: ObservableObject {
             }
         }
         
-        self.isEnhancementEnabled = UserDefaults.standard.bool(forKey: UserDefaultsKeys.AIEnhancement.isEnabled)
-        self.useClipboardContext = UserDefaults.standard.bool(forKey: UserDefaultsKeys.AIEnhancement.useClipboardContext)
-        self.useScreenCaptureContext = UserDefaults.standard.bool(forKey: UserDefaultsKeys.AIEnhancement.useScreenCaptureContext)
-        self.assistantTriggerWord = UserDefaults.standard.string(forKey: UserDefaultsKeys.AIEnhancement.assistantTriggerWord) ?? "hey"
+        self.isEnhancementEnabled = UserDefaults.standard.isAIEnhancementEnabled
+        self.useClipboardContext = UserDefaults.standard.useClipboardContext
+        self.useScreenCaptureContext = UserDefaults.standard.useScreenCaptureContext
+        self.assistantTriggerWord = UserDefaults.standard.assistantTriggerWord
         
         // Load only custom prompts (non-predefined ones)
-        if let savedPromptsData = UserDefaults.standard.data(forKey: UserDefaultsKeys.AIEnhancement.customPrompts),
+        if let savedPromptsData = UserDefaults.standard.aiEnhancementCustomPrompts,
            let decodedPrompts = try? JSONDecoder().decode([CustomPrompt].self, from: savedPromptsData) {
             self.customPrompts = decodedPrompts
         } else {
@@ -111,7 +112,7 @@ class AIEnhancementService: ObservableObject {
         }
         
         // Load selected prompt ID
-        if let savedPromptId = UserDefaults.standard.string(forKey: UserDefaultsKeys.AIEnhancement.selectedPromptId) {
+        if let savedPromptId = UserDefaults.standard.selectedPromptId {
             self.selectedPromptId = UUID(uuidString: savedPromptId)
         }
         

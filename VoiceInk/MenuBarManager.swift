@@ -6,7 +6,7 @@ import AppKit
 class MenuBarManager: ObservableObject {
     @Published var isMenuBarOnly: Bool {
         didSet {
-            UserDefaults.standard.set(isMenuBarOnly, forKey: UserDefaultsKeys.MenuBar.isMenuBarOnly)
+            UserDefaults.standard.isMenuBarOnly = isMenuBarOnly
             updateAppActivationPolicy()
         }
     }
