@@ -11,7 +11,6 @@ import os
 /// Error types specific to cloud transcription
 enum CloudTranscriptionError: Error {
     case authenticationFailed
-    case networkError(Error)
     case invalidResponse
     case serviceUnavailable
     case rateLimitExceeded
@@ -119,7 +118,7 @@ actor CloudTranscriptionService: TranscriptionService {
             do {
                 try await performTranscriptionRequest(fileURL: fileURL)
                 return // Success, exit function
-            } catch let error as CloudTranscriptionError {
+            } catch {
                 lastError = error
                 
                 // Determine if this error is retryable
@@ -148,35 +147,26 @@ actor CloudTranscriptionService: TranscriptionService {
                     }
                     throw error
                 }
-            } catch {
-                // Unknown error type
-                lastError = error
-                logger.error("❌ Unexpected error: \(error.localizedDescription)")
-                throw CloudTranscriptionError.networkError(error)
             }
         } while retryCount < maxRetryAttempts
-        
-        // This should not be reached, but just in case
-        if let error = lastError {
-            throw error
-        } else {
-            throw CloudTranscriptionError.serviceUnavailable
-        }
     }
     
     // Helper function to determine if an error is retryable
-    private func shouldRetry(error: CloudTranscriptionError) -> Bool {
-        switch error {
-        case .networkError(_):
+    private func shouldRetry(error: Error) -> Bool {
+        if let cloudError = error as? CloudTranscriptionError {
+            switch cloudError {
+            case .serviceUnavailable, .rateLimitExceeded, .invalidResponse:
+                // These are temporary errors that might resolve with a retry
+                return true
+            case .authenticationFailed, .unsupportedLanguage,
+                 .invalidAudioFormat, .configurationError, .emptyApiKey,
+                 .invalidEndpointURL, .fileNotFound:
+                // These errors will likely not be resolved by retrying
+                return false
+            }
+        } else {
+            logger.error("Unknown error type encountered: \(error.localizedDescription)")
             return true
-        case .serviceUnavailable, .rateLimitExceeded, .invalidResponse:
-            // These are temporary errors that might resolve with a retry
-            return true
-        case .authenticationFailed, .unsupportedLanguage,
-             .invalidAudioFormat, .configurationError, .emptyApiKey,
-             .invalidEndpointURL, .fileNotFound:
-            // These errors will likely not be resolved by retrying
-            return false
         }
     }
     

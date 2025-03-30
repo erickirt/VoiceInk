@@ -387,7 +387,7 @@ class WhisperState: NSObject, ObservableObject, AVAudioRecorderDelegate {
             
             var text = await transcriptionService.getTranscription()
             text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-            logger.notice("✅ Transcription completed successfully, length: \(text.count) characters")
+            logger.notice("✅ Transcription completed successfully, text: \(text), length: \(text.count) characters")
             
             if UserDefaults.standard.isWordReplacementEnabled {
                 text = WordReplacementService.shared.applyReplacements(to: text)
