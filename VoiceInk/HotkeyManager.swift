@@ -49,6 +49,8 @@ class HotkeyManager: ObservableObject {
     private var keyPressStartTime: Date?
     private let briefPressThreshold = 1.0 // 1 second threshold for brief press
     private var isHandsFreeMode = false   // Track if we're in hands-free recording mode
+    private var keyDelayTimer: Timer?     // Timer for key delay
+    private let keyDelayThreshold = 0.5   // 0.5 second threshold for all keys
 
     // Add cooldown management
     private var lastShortcutTriggerTime: Date?
@@ -108,6 +110,8 @@ class HotkeyManager: ObservableObject {
         currentKeyState = false
         keyPressStartTime = nil
         isHandsFreeMode = false
+        keyDelayTimer?.invalidate()
+        keyDelayTimer = nil
     }
     
     private func setupVisibilityObserver() {
@@ -196,13 +200,28 @@ class HotkeyManager: ObservableObject {
                 return
             }
             
-            // Show recorder if not already visible
-            if !whisperState.isMiniRecorderVisible {
-                await whisperState.handleToggleMiniRecorder()
+            // Add delay before triggering for all keys
+            // Cancel any existing timer
+            keyDelayTimer?.invalidate()
+            
+            // Create new timer
+            keyDelayTimer = Timer.scheduledTimer(withTimeInterval: keyDelayThreshold, repeats: false) { [weak self] _ in
+                guard let self = self else { return }
+                
+                Task { @MainActor in
+                    // Only trigger if key is still pressed after delay
+                    if self.currentKeyState && !self.whisperState.isMiniRecorderVisible {
+                        await self.whisperState.handleToggleMiniRecorder()
+                    }
+                }
             }
         } 
         // Key is released
         else {
+            // Cancel the key delay timer
+            keyDelayTimer?.invalidate()
+            keyDelayTimer = nil
+            
             let now = Date()
             
             // Calculate press duration
@@ -211,11 +230,15 @@ class HotkeyManager: ObservableObject {
                 
                 if pressDuration < briefPressThreshold {
                     // For brief presses, enter hands-free mode
-                    isHandsFreeMode = true
-                    // Continue recording - do nothing on release
+                    // Only if recorder is visible (meaning the key was pressed long enough)
+                    if whisperState.isMiniRecorderVisible {
+                        isHandsFreeMode = true
+                    }
                 } else {
                     // For longer presses, stop and transcribe
-                    await whisperState.handleToggleMiniRecorder()
+                    if whisperState.isMiniRecorderVisible {
+                        await whisperState.handleToggleMiniRecorder()
+                    }
                 }
             }
             
@@ -347,6 +370,7 @@ class HotkeyManager: ObservableObject {
     
     deinit {
         visibilityTask?.cancel()
+        keyDelayTimer?.invalidate()
         Task { @MainActor in
             removeKeyMonitor()
             removeEscapeShortcut()
