@@ -382,15 +382,15 @@ struct NotchVisualizerBar: View {
 
 struct NotchStaticVisualizer: View {
     private let barCount = 5
-    private let barHeights: [CGFloat] = [0.7, 0.5, 0.8, 0.4, 0.6]
+    private let minHeight: CGFloat = 3
     let color: Color
     
     var body: some View {
         HStack(spacing: 2) {
             ForEach(0..<barCount, id: \.self) { index in
                 NotchVisualizerBar(
-                    averageHeight: barHeights[index] * 18,
-                    peakHeight: barHeights[index] * 18,
+                    averageHeight: minHeight,
+                    peakHeight: minHeight,
                     color: color
                 )
             }
