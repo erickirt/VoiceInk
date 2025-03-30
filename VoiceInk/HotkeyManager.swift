@@ -50,7 +50,7 @@ class HotkeyManager: ObservableObject {
     private let briefPressThreshold = 1.0 // 1 second threshold for brief press
     private var isHandsFreeMode = false   // Track if we're in hands-free recording mode
     private var keyDelayTimer: Timer?     // Timer for key delay
-    private let keyDelayThreshold = 0.5   // 0.5 second threshold for all keys
+    private let keyDelayThreshold = 0.25   // 0.25 second threshold for all keys
 
     // Add cooldown management
     private var lastShortcutTriggerTime: Date?
