@@ -52,14 +52,18 @@ struct LanguageSelectionView: View {
 
     // Function to get current model's supported languages
     private func getCurrentModelLanguages() -> [String: String] {
-        guard let currentModel = whisperState.currentModel,
-              let predefinedModel = PredefinedModels.models.first(where: {
-                  $0.name == currentModel.name
-              })
-        else {
-            return ["en": "English"] // Default to English if no model found
+        if whisperState.transcriptionServiceType == .cloud {
+            return PredefinedModels.allLanguages
+        } else {
+            guard let currentModel = whisperState.currentModel,
+                  let predefinedModel = PredefinedModels.models.first(where: {
+                      $0.name == currentModel.name
+                  })
+            else {
+                return ["en": "English"] // Default to English if no model found
+            }
+            return predefinedModel.supportedLanguages
         }
-        return predefinedModel.supportedLanguages
     }
 
     // Get the display name of the current language

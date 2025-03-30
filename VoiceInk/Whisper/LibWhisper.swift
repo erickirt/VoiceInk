@@ -71,7 +71,7 @@ actor WhisperContext: TranscriptionService {
         var params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY)
         
         // Set language from stored property
-        if let language = language {
+        if let language = language, language.isEmpty == false, language.lowercased() != "auto" {
             languageCString = Array(language.utf8CString)
             params.language = languageCString?.withUnsafeBufferPointer { ptr in
                 ptr.baseAddress

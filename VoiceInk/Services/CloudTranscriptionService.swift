@@ -130,7 +130,7 @@ actor CloudTranscriptionService: TranscriptionService {
         formData.append("\r\n".data(using: .utf8)!)
         
         // Add language parameter if not auto
-        if let language = language, language.isEmpty == false {
+        if let language = language, language.isEmpty == false, language.lowercased() != "auto" {
             formData.append("--\(boundary)\r\n".data(using: .utf8)!)
             formData.append("Content-Disposition: form-data; name=\"language\"\r\n\r\n".data(using: .utf8)!)
             formData.append("\(language)\r\n".data(using: .utf8)!)
