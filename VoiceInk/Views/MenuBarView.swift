@@ -118,7 +118,7 @@ struct MenuBarView: View {
             
             if whisperState.transcriptionServiceType == .cloud {
                 Menu {
-                    let availableCloudModels = ["gpt-4o-transcribe", "whisper-1"]
+                    let availableCloudModels = ["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"]
                     
                     ForEach(availableCloudModels, id: \.self) { modelName in
                         Button {
