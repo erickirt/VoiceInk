@@ -36,6 +36,11 @@ actor CloudTranscriptionService: TranscriptionService {
     private var transcriptionResult: String = ""
     private let session: URLSession
     
+    // Retry configuration
+    private let maxRetryAttempts = 3
+    private let retryDelay: TimeInterval = 1.0  // seconds
+    private let useExponentialBackoff = true
+    
     // MARK: - Initialization
     
     init(apiKey: String, apiEndpoint: String) throws {
@@ -105,6 +110,78 @@ actor CloudTranscriptionService: TranscriptionService {
         
         logger.notice("🔄 Starting OpenAI transcription from file URL using \(self.model)")
         
+        // Initialize retry counter
+        var retryCount = 0
+        var lastError: Error? = nil
+        
+        // Retry loop
+        repeat {
+            do {
+                try await performTranscriptionRequest(fileURL: fileURL)
+                return // Success, exit function
+            } catch let error as CloudTranscriptionError {
+                lastError = error
+                
+                // Determine if this error is retryable
+                let isRetryable = shouldRetry(error: error)
+                
+                if isRetryable && retryCount < maxRetryAttempts {
+                    retryCount += 1
+                    
+                    // Calculate delay with exponential backoff and jitter if enabled
+                    var delayTime = retryDelay * Double(retryCount)
+                    if useExponentialBackoff {
+                        delayTime = retryDelay * pow(2.0, Double(retryCount - 1))
+                    }
+                    
+                    logger.notice("⏱️ Retrying transcription (attempt \(retryCount)/\(self.maxRetryAttempts)) after \(String(format: "%.2f", delayTime)) seconds. Error: \(error)")
+                    
+                    // Wait before retrying
+                    try? await Task.sleep(nanoseconds: UInt64(delayTime * 1_000_000_000))
+                    continue
+                } else {
+                    // Either not retryable or max retries reached
+                    if !isRetryable {
+                        logger.error("❌ Non-retryable error occurred: \(error.localizedDescription)")
+                    } else {
+                        logger.error("❌ Max retry attempts (\(self.maxRetryAttempts)) reached")
+                    }
+                    throw error
+                }
+            } catch {
+                // Unknown error type
+                lastError = error
+                logger.error("❌ Unexpected error: \(error.localizedDescription)")
+                throw CloudTranscriptionError.networkError(error)
+            }
+        } while retryCount < maxRetryAttempts
+        
+        // This should not be reached, but just in case
+        if let error = lastError {
+            throw error
+        } else {
+            throw CloudTranscriptionError.serviceUnavailable
+        }
+    }
+    
+    // Helper function to determine if an error is retryable
+    private func shouldRetry(error: CloudTranscriptionError) -> Bool {
+        switch error {
+        case .networkError(_):
+            return true
+        case .serviceUnavailable, .rateLimitExceeded. .invalidResponse:
+            // These are temporary errors that might resolve with a retry
+            return true
+        case .authenticationFailed, .unsupportedLanguage,
+             .invalidAudioFormat, .configurationError, .emptyApiKey,
+             .invalidEndpointURL, .fileNotFound:
+            // These errors will likely not be resolved by retrying
+            return false
+        }
+    }
+    
+    // Extracted actual API request logic to a separate function
+    private func performTranscriptionRequest(fileURL: URL) async throws {
         // Prepare multipart form data request
         let boundary = UUID().uuidString
         var request = URLRequest(url: apiEndpoint)
@@ -149,60 +226,49 @@ actor CloudTranscriptionService: TranscriptionService {
         // Set request body
         request.httpBody = formData
         
-        do {
-            // Send request to OpenAI service
-            let (data, response) = try await session.data(for: request)
-            
-            // Check HTTP response
-            guard let httpResponse = response as? HTTPURLResponse else {
-                logger.error("❌ Invalid response format")
+        // Send request to OpenAI service
+        let (data, response) = try await session.data(for: request)
+        
+        // Check HTTP response
+        guard let httpResponse = response as? HTTPURLResponse else {
+            logger.error("❌ Invalid response format")
+            throw CloudTranscriptionError.invalidResponse
+        }
+        
+        // Handle HTTP status codes
+        switch httpResponse.statusCode {
+        case 200:
+            // Parse successful response
+            if let result = try? JSONDecoder().decode(OpenAITranscriptionResponse.self, from: data) {
+                self.transcriptionResult = result.text
+                logger.notice("✅ OpenAI transcription successfully completed")
+            } else if let text = String(data: data, encoding: .utf8) {
+                // Fallback if response isn't JSON
+                self.transcriptionResult = text
+                logger.notice("✅ OpenAI transcription received plain text response")
+            } else {
+                logger.error("❌ Could not parse OpenAI response data")
                 throw CloudTranscriptionError.invalidResponse
             }
-            
-            // Handle HTTP status codes
-            switch httpResponse.statusCode {
-            case 200:
-                // Parse successful response
-                if let result = try? JSONDecoder().decode(OpenAITranscriptionResponse.self, from: data) {
-                    self.transcriptionResult = result.text
-                    logger.notice("✅ OpenAI transcription successfully completed")
-                } else if let text = String(data: data, encoding: .utf8) {
-                    // Fallback if response isn't JSON
-                    self.transcriptionResult = text
-                    logger.notice("✅ OpenAI transcription received plain text response")
-                } else {
-                    logger.error("❌ Could not parse OpenAI response data")
-                    throw CloudTranscriptionError.invalidResponse
-                }
-            case 401:
-                logger.error("❌ Authentication failed with OpenAI API key")
-                throw CloudTranscriptionError.authenticationFailed
-            case 429:
-                logger.error("❌ OpenAI rate limit exceeded")
-                throw CloudTranscriptionError.rateLimitExceeded
-            case 400:
-                if let errorData = try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data) {
-                    logger.error("❌ OpenAI bad request: \(errorData.error.message)")
-                } else {
-                    logger.error("❌ OpenAI bad request - possibly unsupported language or format")
-                }
-                throw CloudTranscriptionError.invalidAudioFormat
-            case 500, 502, 503, 504:
-                logger.error("❌ OpenAI service temporarily unavailable (status: \(httpResponse.statusCode))")
-                throw CloudTranscriptionError.serviceUnavailable
-            default:
-                logger.error("❌ Unexpected HTTP status from OpenAI: \(httpResponse.statusCode)")
-                throw CloudTranscriptionError.invalidResponse
+        case 401:
+            logger.error("❌ Authentication failed with OpenAI API key")
+            throw CloudTranscriptionError.authenticationFailed
+        case 429:
+            logger.error("❌ OpenAI rate limit exceeded")
+            throw CloudTranscriptionError.rateLimitExceeded
+        case 400:
+            if let errorData = try? JSONDecoder().decode(OpenAIErrorResponse.self, from: data) {
+                logger.error("❌ OpenAI bad request: \(errorData.error.message)")
+            } else {
+                logger.error("❌ OpenAI bad request - possibly unsupported language or format")
             }
-        } catch let urlError as URLError {
-            logger.error("❌ Network error: \(urlError.localizedDescription)")
-            throw CloudTranscriptionError.networkError(urlError)
-        } catch let transcriptionError as CloudTranscriptionError {
-            // Rethrow our custom errors
-            throw transcriptionError
-        } catch {
-            logger.error("❌ Unexpected error: \(error.localizedDescription)")
-            throw CloudTranscriptionError.networkError(error)
+            throw CloudTranscriptionError.invalidAudioFormat
+        case 500, 502, 503, 504:
+            logger.error("❌ OpenAI service temporarily unavailable (status: \(httpResponse.statusCode))")
+            throw CloudTranscriptionError.serviceUnavailable
+        default:
+            logger.error("❌ Unexpected HTTP status from OpenAI: \(httpResponse.statusCode)")
+            throw CloudTranscriptionError.invalidResponse
         }
     }
     
