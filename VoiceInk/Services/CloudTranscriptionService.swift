@@ -169,7 +169,7 @@ actor CloudTranscriptionService: TranscriptionService {
         switch error {
         case .networkError(_):
             return true
-        case .serviceUnavailable, .rateLimitExceeded. .invalidResponse:
+        case .serviceUnavailable, .rateLimitExceeded, .invalidResponse:
             // These are temporary errors that might resolve with a retry
             return true
         case .authenticationFailed, .unsupportedLanguage,
