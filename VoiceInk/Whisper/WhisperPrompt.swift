@@ -94,22 +94,22 @@ class WhisperPrompt: ObservableObject {
         
         let transcriptionServiceType = UserDefaults.standard.transcriptionServiceType
         let selectedLanguage: String
+        var prompt = ""
         switch transcriptionServiceType {
         case .local:
             selectedLanguage = UserDefaults.standard.selectedLanguage ?? "en"
+            // Get the appropriate base prompt for the selected language
+            let basePrompt = languagePrompts[selectedLanguage] ?? languagePrompts["default"]!
+            prompt = "\(basePrompt)\n"
         case .cloud:
             selectedLanguage = UserDefaults.standard.cloudTranscriptionLanguage ?? "en"
         }
         
-        // Get the appropriate base prompt for the selected language
-        let basePrompt = languagePrompts[selectedLanguage] ?? languagePrompts["default"]!
-        
-        var prompt = basePrompt
         var allWords = ["VoiceInk"]
         allWords.append(contentsOf: dictionaryWords)
         
         if !allWords.isEmpty {
-            prompt += "\nImportant words: " + allWords.joined(separator: ", ")
+            prompt += "Important words: " + allWords.joined(separator: ", ")
         }
         
         transcriptionPrompt = prompt
