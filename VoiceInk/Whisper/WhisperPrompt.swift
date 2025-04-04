@@ -1,15 +1,15 @@
 import Foundation
 
-extension Notification.Name {
-    static let languageDidChange = Notification.Name("languageDidChange")
-}
-
 @MainActor
 class WhisperPrompt: ObservableObject {
-    @Published var transcriptionPrompt: String = UserDefaults.standard.string(forKey: "TranscriptionPrompt") ?? ""
+    @Published var transcriptionPrompt: String = UserDefaults.standard.transcriptionPrompt {
+        didSet {
+            UserDefaults.standard.transcriptionPrompt = transcriptionPrompt
+        }
+    }
     
     private var dictionaryWords: [String] = []
-    private let saveKey = "CustomDictionaryItems"
+    private let saveKey = UserDefaultsKeys.WhisperPrompts.savedPrompts
     
     // Language-specific base prompts
     private let languagePrompts: [String: String] = [
@@ -91,21 +91,28 @@ class WhisperPrompt: ObservableObject {
     
     private func updateTranscriptionPrompt() {
         // Get the currently selected language from UserDefaults
-        let selectedLanguage = UserDefaults.standard.string(forKey: "SelectedLanguage") ?? "en"
         
-        // Get the appropriate base prompt for the selected language
-        let basePrompt = languagePrompts[selectedLanguage] ?? languagePrompts["default"]!
+        let transcriptionServiceType = UserDefaults.standard.transcriptionServiceType
+        let selectedLanguage: String
+        var prompt = ""
+        switch transcriptionServiceType {
+        case .local:
+            selectedLanguage = UserDefaults.standard.selectedLanguage ?? "en"
+            // Get the appropriate base prompt for the selected language
+            let basePrompt = languagePrompts[selectedLanguage] ?? languagePrompts["default"]!
+            prompt = "\(basePrompt)\n"
+        case .cloud:
+            selectedLanguage = UserDefaults.standard.cloudTranscriptionLanguage ?? "en"
+        }
         
-        var prompt = basePrompt
         var allWords = ["VoiceInk"]
         allWords.append(contentsOf: dictionaryWords)
         
         if !allWords.isEmpty {
-            prompt += "\nImportant words: " + allWords.joined(separator: ", ")
+            prompt += "Important words: " + allWords.joined(separator: ", ")
         }
         
         transcriptionPrompt = prompt
-        UserDefaults.standard.set(prompt, forKey: "TranscriptionPrompt")
     }
     
     func saveDictionaryItems(_ items: [DictionaryItem]) async {
