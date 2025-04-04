@@ -9,7 +9,7 @@ class MediaController: ObservableObject {
     static let shared = MediaController()
     private var mediaRemoteHandle: UnsafeMutableRawPointer?
     private var mrNowPlayingIsPlaying: MRNowPlayingIsPlayingFunc?
-    private var didPauseMedia = false
+    private var didAttemptPauseMedia = false
     
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "MediaController")
     
@@ -75,6 +75,7 @@ class MediaController: ObservableObject {
     }
     
     /// Checks if media is currently playing on the system
+    /// Note: This method may be unreliable in newer macOS versions
     func isMediaPlaying() async -> Bool {
         guard isMediaPauseEnabled, let mrNowPlayingIsPlaying = mrNowPlayingIsPlaying else {
             return false
@@ -87,43 +88,38 @@ class MediaController: ObservableObject {
         }
     }
     
-    /// Pauses media if it's currently playing
+    /// Attempts to pause any potentially playing media without first checking its state
     func pauseMediaIfPlaying() async -> Bool {
         guard isMediaPauseEnabled else {
             logger.info("Media pause feature is disabled")
             return false
         }
         
-        if await isMediaPlaying() {
-            logger.info("Media is playing, pausing it for recording")
-            await MainActor.run {
-                // Try direct command first, then fall back to key simulation
-                if !sendMediaCommand(command: kMRPause) {
-                    sendMediaKey()
-                }
+        logger.info("Attempting to pause any potentially playing media")
+        await MainActor.run {
+            // Try direct command first, then fall back to key simulation
+            if !sendMediaCommand(command: kMRPause) {
+                sendMediaKey()
             }
-            didPauseMedia = true
-            return true
         }
-        
-        logger.info("No media playing, no need to pause")
-        return false
+        didAttemptPauseMedia = true
+        return true
     }
     
     /// Resumes media if it was paused by this controller
     func resumeMediaIfPaused() async {
-        guard isMediaPauseEnabled, didPauseMedia else {
+        guard isMediaPauseEnabled, didAttemptPauseMedia else {
             return
         }
         
-        logger.info("Resuming previously paused media")
+        logger.info("Resuming potentially paused media")
         await MainActor.run {
             // Try direct command first, then fall back to key simulation
             if !sendMediaCommand(command: kMRPlay) {
                 sendMediaKey()
             }
         }
-        didPauseMedia = false
+        didAttemptPauseMedia = false
     }
     
     /// Sends a media command using the MediaRemote framework
