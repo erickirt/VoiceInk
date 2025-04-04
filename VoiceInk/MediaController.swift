@@ -4,11 +4,10 @@ import Foundation
 import os
 import SwiftUI
 
-/// Controls media playback detection and management during recording
+/// Controls media playback management during recording
 class MediaController: ObservableObject {
     static let shared = MediaController()
     private var mediaRemoteHandle: UnsafeMutableRawPointer?
-    private var mrNowPlayingIsPlaying: MRNowPlayingIsPlayingFunc?
     private var didAttemptPauseMedia = false
     
     private let logger = Logger(subsystem: "com.prakashjoshipax.voiceink", category: "MediaController")
@@ -19,17 +18,12 @@ class MediaController: ObservableObject {
         }
     }
     
-    // Define function pointer types for MediaRemote functions
-    typealias MRNowPlayingIsPlayingFunc = @convention(c) (DispatchQueue, @escaping (Bool) -> Void) -> Void
-    typealias MRMediaRemoteCommandInfoFunc = @convention(c) () -> Void
-    
     // Additional function pointers for direct control
     private var mrSendCommand: (@convention(c) (Int, [String: Any]?) -> Bool)?
     
-    // MediaRemote command constantst
+    // MediaRemote command constants
     private let kMRPlay = 0
     private let kMRPause = 1
-    private let kMRTogglePlayPause = 2
     
     private init() {
         // Set default if not already set
@@ -46,16 +40,6 @@ class MediaController: ObservableObject {
             return
         }
         mediaRemoteHandle = handle
-        
-        // Get pointer for the "is playing" function
-        guard let playingPtr = dlsym(handle, "MRMediaRemoteGetNowPlayingApplicationIsPlaying") else {
-            logger.error("Unable to find MRMediaRemoteGetNowPlayingApplicationIsPlaying function")
-            dlclose(handle)
-            mediaRemoteHandle = nil
-            return
-        }
-        
-        mrNowPlayingIsPlaying = unsafeBitCast(playingPtr, to: MRNowPlayingIsPlayingFunc.self)
         
         // Get the send command function pointer
         if let sendCommandPtr = dlsym(handle, "MRMediaRemoteSendCommand") {
@@ -74,21 +58,7 @@ class MediaController: ObservableObject {
         }
     }
     
-    /// Checks if media is currently playing on the system
-    /// Note: This method may be unreliable in newer macOS versions
-    func isMediaPlaying() async -> Bool {
-        guard isMediaPauseEnabled, let mrNowPlayingIsPlaying = mrNowPlayingIsPlaying else {
-            return false
-        }
-        
-        return await withCheckedContinuation { continuation in
-            mrNowPlayingIsPlaying(DispatchQueue.main) { isPlaying in
-                continuation.resume(returning: isPlaying)
-            }
-        }
-    }
-    
-    /// Attempts to pause any potentially playing media without first checking its state
+    /// Attempts to pause any potentially playing media
     func pauseMediaIfPlaying() async -> Bool {
         guard isMediaPauseEnabled else {
             logger.info("Media pause feature is disabled")
@@ -134,7 +104,7 @@ class MediaController: ObservableObject {
         return result
     }
     
-    /// Simulates a media key press (Play/Pause) by posting a system-defined NSEvent
+    /// Simulates a media key press (Play/Pause)
     private func sendMediaKey() {
         let NX_KEYTYPE_PLAY: UInt32 = 16
         let keys = [NX_KEYTYPE_PLAY]
