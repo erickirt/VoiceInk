@@ -145,6 +145,28 @@ enum PredefinedModels {
             hash: "8c30f0e44ce9560643ebd10bbe50cd20eafd3723"
         ),
         PredefinedModel(
+            name: "ggml-large-v2",
+            displayName: "Large v2",
+            size: "2.9 GiB",
+            supportedLanguages: getLanguageDictionary(isMultilingual: true),
+            description: "Large model v2, slower than Medium but more accurate, supports multiple languages",
+            speed: 0.25,
+            accuracy: 0.96,
+            ramUsage: 3.8,
+            hash: "0f4c8e30f21cf1769f637135f521436792c48186"
+        ),
+        PredefinedModel(
+            name: "ggml-large-v2-q5_0",
+            displayName: "Large v2 (Quantized)",
+            size: "1.1 GiB",
+            supportedLanguages: getLanguageDictionary(isMultilingual: true), 
+            description: "Quantized version of Large v2, faster with slightly lower accuracy",
+            speed: 0.35,
+            accuracy: 0.95,
+            ramUsage: 1.5,
+            hash: "129fccc931774148e43113c57dd5a4e04891c04c"
+        ),
+        PredefinedModel(
             name: "ggml-large-v3",
             displayName: "Large v3",
             size: "2.9 GiB",
