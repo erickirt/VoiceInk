@@ -182,13 +182,13 @@ struct MenuBarView: View {
                 }
                 
                 Button {
-                    MediaController.shared.isMediaPauseEnabled.toggle()
+                    MediaController.shared.isSystemMuteEnabled.toggle()
                     menuRefreshTrigger.toggle()
                 } label: {
                     HStack {
-                        Text("Pause Media During Recording")
+                        Text("Mute System Audio During Recording")
                         Spacer()
-                        if MediaController.shared.isMediaPauseEnabled {
+                        if MediaController.shared.isSystemMuteEnabled {
                             Image(systemName: "checkmark")
                         }
                     }

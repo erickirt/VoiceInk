@@ -113,16 +113,16 @@ struct RecordView: View {
                     }
                     .toggleStyle(.switch)
                     
-                    Toggle(isOn: $mediaController.isMediaPauseEnabled) {
+                    Toggle(isOn: $mediaController.isSystemMuteEnabled) {
                         HStack {
-                            Image(systemName: "play.slash")
+                            Image(systemName: "speaker.slash")
                                 .foregroundColor(.secondary)
-                            Text("Pause media during recording")
+                            Text("Mute system audio during recording")
                                 .font(.subheadline.weight(.medium))
                         }
                     }
                     .toggleStyle(.switch)
-                    .help("Automatically pause music playback when recording starts and resume when recording stops")
+                    .help("Automatically mute system audio when recording starts and restore volume when recording stops")
                 }
             }
         }

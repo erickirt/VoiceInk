@@ -103,10 +103,10 @@ class Recorder: ObservableObject {
     func startRecording(toOutputFile url: URL, delegate: AVAudioRecorderDelegate?) async throws {
         logger.info("Starting recording process")
         
-        // Check if media is playing and pause it if needed
-        let wasPaused = await mediaController.pauseMediaIfPlaying()
-        if wasPaused {
-            logger.info("Media playback paused for recording")
+        // Check if we need to mute system audio
+        let wasMuted = await mediaController.muteSystemAudio()
+        if wasMuted {
+            logger.info("System audio muted for recording")
         }
         
         // Get the current selected device
@@ -156,8 +156,8 @@ class Recorder: ObservableObject {
                     logger.error("Current device name: \(deviceName)")
                 }
                 
-                // Resume media if we paused it but failed to start recording
-                await mediaController.resumeMediaIfPaused()
+                // Restore system audio if we muted it but failed to start recording
+                await mediaController.unmuteSystemAudio()
                 
                 throw RecorderError.couldNotStartRecording
             }
@@ -166,8 +166,8 @@ class Recorder: ObservableObject {
             logger.error("Recording settings used: \(recordSettings)")
             logger.error("Output URL: \(url.path)")
             
-            // Resume media if we paused it but failed to start recording
-            await mediaController.resumeMediaIfPaused()
+            // Restore system audio if we muted it but failed to start recording
+            await mediaController.unmuteSystemAudio()
             
             throw error
         }
@@ -184,9 +184,9 @@ class Recorder: ObservableObject {
         logger.info("Triggering audio device change notification")
         NotificationCenter.default.post(name: NSNotification.Name("AudioDeviceChanged"), object: nil)
         
-        // Resume media if we paused it
+        // Restore system audio if we muted it
         Task {
-            await mediaController.resumeMediaIfPaused()
+            await mediaController.unmuteSystemAudio()
         }
         
         logger.info("Recording stopped successfully")

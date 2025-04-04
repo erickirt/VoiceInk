@@ -64,7 +64,8 @@ enum UserDefaultsKeys {
     
     // MARK: - Media Control
     enum Media {
-        static let isPauseEnabled = "isMediaPauseEnabled"
+        // Using old key name for backward compatibility with existing user settings
+        static let isMuteEnabled = "isMediaPauseEnabled"
     }
     
     // MARK: - Power Mode
@@ -152,9 +153,9 @@ extension UserDefaults {
     }
     
     // MARK: - Media Control
-    var isMediaPauseEnabled: Bool {
-        get { bool(forKey: UserDefaultsKeys.Media.isPauseEnabled) }
-        set { set(newValue, forKey: UserDefaultsKeys.Media.isPauseEnabled) }
+    var isSystemMuteEnabled: Bool {
+        get { bool(forKey: UserDefaultsKeys.Media.isMuteEnabled) }
+        set { set(newValue, forKey: UserDefaultsKeys.Media.isMuteEnabled) }
     }
     
     // MARK: - Push To Talk
